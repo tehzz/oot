@@ -441,7 +441,13 @@ static void write_ld_script(void)
     }
 
 
-    fputs("    _RomEnd = _RomSize;\n}\n", fout);
+    fputs("    _RomEnd = _RomSize;\n", fout);
+    fputs("   /DISCARD/ :\n"
+          "   {\n"
+          "       *(*);\n"
+          "   }\n",
+        fout);
+    fputs("}\n", fout);
 }
 
 static void usage(const char *execname)

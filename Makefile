@@ -9,6 +9,24 @@ else
   MIPS_BINUTILS_PREFIX := mips64-elf-
 endif
 
+#### Host OS Dectection ####
+ifeq ($(OS),Windows_NT)
+  HOST_WINDOWS := 1
+else
+  UNAME := $(shell uname -s)
+  ifeq ($(UNAME),Linux)
+    HOST_LINUX := 1
+  else
+  ifeq ($(UNAME),Darwin)
+    HOST_MACOS := 1
+  endif
+  endif
+endif
+
+ifeq ($(HOST_WINDOWS),1)
+  $(error "Building not supported on Windows; check README")
+endif
+
 # check that either QEMU_IRIX is set or qemu-irix package installed
 ifneq ($(MAKECMDGOALS),clean)
 ifndef QEMU_IRIX
@@ -31,10 +49,12 @@ CC_HOST    := gcc
 # Check code syntax with host compiler
 CC_CHECK   := $(CC_HOST) -fno-builtin -fsyntax-only -fsigned-char -std=gnu90 -Wall -Wextra -Wno-format-security -Wno-unknown-pragmas -D _LANGUAGE_C -D NON_MATCHING -Iinclude -Isrc -include stdarg.h
 
-CPP        := cpp-9
+# macOS host cpp (clang) is not compatible with Linux GNU cpp
+CPP        := $(if $(HOST_MACOS),$(MIPS_BINUTILS_PREFIX)cpp,cpp)
 MKLDSCRIPT := tools/mkldscript
 ELF2ROM    := tools/elf2rom
 ZAP2       := tools/ZAP2/ZAP2.out
+MD5SUM     := $(if $(HOST_MACOS),md5,md5sum)
 
 OPTFLAGS := -O2
 ASFLAGS := -march=vr4300 -32 -Iinclude
@@ -121,8 +141,8 @@ build/src/overlays/gamestates/%.o: CC := python3 tools/asm_processor/build.py $(
 #### Main Targets ###
 
 compare: $(ROM)
-	@md5sum $(ROM)
-	@md5sum -c checksum.md5
+	@$(MD5SUM) $(ROM)
+	@$(MD5SUM) -c checksum.md5
 
 $(ROM): $(ELF)
 	$(ELF2ROM) -cic 6105 $< $@

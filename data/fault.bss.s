@@ -21,3 +21,5 @@ glabel sFaultThreadInfo
 
 glabel gFaultStruct
     .space 0x850
+
+.balign(0x10)

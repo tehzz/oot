@@ -12,3 +12,5 @@ glabel sFaultDrawerStruct
 
 glabel D_8016B6C0
     .space 0x20
+
+.balign(0x10)
